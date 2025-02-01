@@ -3,12 +3,16 @@
 namespace Modules\Invoice\Domain\RootAggregate;
 
 use Modules\Invoice\Domain\Enums\StatusEnum;
+use Modules\Invoice\Domain\Event\InvoiceSentDomainEvent;
+use Modules\Invoice\Domain\Event\InvoiceSentProduct;
 use Modules\Invoice\Domain\Exception\CannotSendInvoiceException;
 use Modules\Invoice\Domain\ValueObject\CustomerEmail;
 use Modules\Invoice\Domain\ValueObject\CustomerName;
+use Modules\Shared\Domain\Aggregate\RootAggregate;
+use Modules\Shared\Helper\ArrayHelper;
 use Modules\Shared\ValueObject\Uuid;
 
-class Invoice
+class Invoice extends RootAggregate
 {
 
     public function __construct(
@@ -107,6 +111,17 @@ class Invoice
         }
 
         $this->status = StatusEnum::Sending;
+
+        $this->record(new InvoiceSentDomainEvent(
+            id: $this->id,
+            destinationEmail: $this->customerEmail,
+            name: $this->customerName,
+            totalCost: $this->getTotalPrice(),
+            products: ArrayHelper::map($this->products, fn(Product $product) => new InvoiceSentProduct(
+                productName: $product->getName(),
+                cost: $product->getTotalUnitPrice(),
+            )),
+        ));
     }
 
 }

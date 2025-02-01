@@ -3,12 +3,14 @@
 namespace Modules\Invoice\Application\Action;
 
 use Modules\Invoice\Domain\Repository\InvoiceRepository;
+use Modules\Shared\Domain\Bus\EventBus;
 
 readonly class SendInvoice
 {
 
     public function __construct(
         private InvoiceRepository $invoiceRepository,
+        private EventBus $eventBus
     ) {
     }
 
@@ -19,5 +21,7 @@ readonly class SendInvoice
         $invoice->send();
 
         $this->invoiceRepository->update($invoice);
+
+        $this->eventBus->publish($invoice->pullDomainEvents());
     }
 }

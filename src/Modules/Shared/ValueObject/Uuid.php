@@ -19,6 +19,11 @@ readonly class Uuid
         );
     }
 
+    public function get(): string
+    {
+        return $this->uuid;
+    }
+
     public function __toString(): string
     {
         return $this->uuid;

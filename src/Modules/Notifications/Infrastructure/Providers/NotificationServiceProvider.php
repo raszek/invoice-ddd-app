@@ -9,9 +9,17 @@ use Illuminate\Support\ServiceProvider;
 use Modules\Notifications\Api\NotificationFacadeInterface;
 use Modules\Notifications\Application\Facades\NotificationFacade;
 use Modules\Notifications\Infrastructure\Drivers\DummyDriver;
+use Illuminate\Support\Facades\Event;
+use Modules\Notifications\Infrastructure\Subscribers\NotificationEventSubscriber;
 
 final class NotificationServiceProvider extends ServiceProvider implements DeferrableProvider
 {
+
+    public function boot(): void
+    {
+        Event::subscribe(NotificationEventSubscriber::class);
+    }
+
     public function register(): void
     {
         $this->app->scoped(NotificationFacadeInterface::class, NotificationFacade::class);
