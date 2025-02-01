@@ -30,4 +30,9 @@ readonly class Product
     {
         return $this->price;
     }
+
+    public function getTotalUnitPrice(): int
+    {
+        return $this->price * $this->quantity;
+    }
 }

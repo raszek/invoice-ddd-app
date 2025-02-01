@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Invoice\Http;
 
 use Database\Factories\InvoiceFactory;
+use Database\Factories\ProductFactory;
 use Illuminate\Foundation\Testing\WithFaker;
 use Modules\Invoice\Domain\Enums\StatusEnum;
 use PHPUnit\Framework\Attributes\Test;
@@ -62,6 +63,33 @@ class InvoiceControllerTest extends TestCase
 
         $this->assertDatabaseHas('invoices', [
             'customer_email' => 'john@example.com',
+        ]);
+    }
+
+    #[Test]
+    public function user_can_send_invoice(): void
+    {
+        $invoice = InvoiceFactory::new()->create([
+            'customer_name' => 'John Doe',
+            'customer_email' => 'john@example.com',
+            'status' => StatusEnum::Draft->value
+        ]);
+
+        ProductFactory::new()->create([
+            'invoice_id' => $invoice->id,
+            'quantity' => 5,
+            'price' => 100
+        ]);
+
+        $uri = route('invoices.send', [
+            'id' => $invoice->id,
+        ]);
+
+        $this->post($uri)->assertStatus(204);
+
+        $this->assertDatabaseHas('invoices', [
+            'customer_email' => 'john@example.com',
+            'status' => StatusEnum::Sending->value
         ]);
     }
 

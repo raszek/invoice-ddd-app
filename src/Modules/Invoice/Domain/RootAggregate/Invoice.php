@@ -3,18 +3,22 @@
 namespace Modules\Invoice\Domain\RootAggregate;
 
 use Modules\Invoice\Domain\Enums\StatusEnum;
+use Modules\Invoice\Domain\Exception\CannotSendInvoiceException;
 use Modules\Invoice\Domain\ValueObject\CustomerEmail;
 use Modules\Invoice\Domain\ValueObject\CustomerName;
-use Ramsey\Uuid\Uuid;
+use Modules\Shared\ValueObject\Uuid;
 
 class Invoice
 {
 
     public function __construct(
-        private readonly string $id,
+        private readonly Uuid $id,
         private readonly CustomerName $customerName,
         private readonly CustomerEmail $customerEmail,
-        private readonly StatusEnum $status,
+        private StatusEnum $status,
+        /**
+         * @var Product[]
+         */
         private array $products,
     ) {
         $this->setProducts($this->products);
@@ -26,7 +30,7 @@ class Invoice
     ): static
     {
         return new static(
-            id: Uuid::uuid4()->toString(),
+            id: Uuid::create(),
             customerName: new CustomerName($customerName),
             customerEmail: new CustomerEmail($customerEmail),
             status: StatusEnum::Draft,
@@ -78,6 +82,31 @@ class Invoice
     public function getProducts(): array
     {
         return $this->products;
+    }
+
+    public function getTotalPrice(): int
+    {
+        $totalPrice = 0;
+        foreach ($this->getProducts() as $product) {
+            $totalPrice += $product->getTotalUnitPrice();
+        }
+
+        return $totalPrice;
+    }
+
+    public function send(): void
+    {
+        if ($this->status !== StatusEnum::Draft) {
+            throw new CannotSendInvoiceException(
+                sprintf('Cannot send invoice with %s status', $this->status->value)
+            );
+        }
+
+        if ($this->getTotalPrice() <= 0) {
+            throw new CannotSendInvoiceException('Cannot send invoice when total cost is not bigger than 0');
+        }
+
+        $this->status = StatusEnum::Sending;
     }
 
 }

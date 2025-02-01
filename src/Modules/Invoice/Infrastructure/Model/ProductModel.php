@@ -6,17 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property string $id
- * @property string $customer_name
- * @property string $customer_email
- * @property string $status
+ * @property string $name
+ * @property int $price
+ * @property int $quantity
+ * @property string $invoice_id
  */
-class ModelInvoice extends Model
+class ProductModel extends Model
 {
 
-    protected $table = 'invoices';
+    protected $table = 'invoice_product_lines';
 
     protected $keyType = 'string';
-
 
     public $incrementing = false;
 

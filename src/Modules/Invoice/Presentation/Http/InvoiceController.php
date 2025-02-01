@@ -4,6 +4,7 @@ namespace Modules\Invoice\Presentation\Http;
 
 use Modules\Invoice\Application\Action\CreateInvoice;
 use Modules\Invoice\Application\Action\GetInvoice;
+use Modules\Invoice\Application\Action\SendInvoice;
 use Modules\Invoice\Application\Request\InvoiceRequest;
 use Modules\Invoice\Infrastructure\Request\CreateInvoiceRequest;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,5 +26,12 @@ class InvoiceController
         $invoiceResponse = $createInvoice->execute(new InvoiceRequest(...$validated));
 
         return response()->json($invoiceResponse->toArray());
+    }
+
+    public function send(SendInvoice $sendInvoice, string $id): Response
+    {
+        $sendInvoice->execute($id);
+
+        return response()->noContent();
     }
 }

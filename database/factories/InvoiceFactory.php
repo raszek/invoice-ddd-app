@@ -4,15 +4,15 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Invoice\Domain\Enums\StatusEnum;
-use Modules\Invoice\Infrastructure\Model\ModelInvoice;
+use Modules\Invoice\Infrastructure\Model\InvoiceModel;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<ModelInvoice>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<InvoiceModel>
  */
 class InvoiceFactory extends Factory
 {
 
-    protected $model = ModelInvoice::class;
+    protected $model = InvoiceModel::class;
 
     /**
      * Define the model's default state.

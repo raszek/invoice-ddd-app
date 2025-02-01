@@ -4,7 +4,7 @@ namespace Modules\Invoice\Domain\Exception;
 
 use Modules\Shared\Exception\DomainException;
 
-class InvoiceNotExist extends DomainException
+class CannotSendInvoiceException extends DomainException
 {
 
 }
