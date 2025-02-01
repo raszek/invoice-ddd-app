@@ -3,6 +3,8 @@
 namespace Modules\Invoice\Domain\RootAggregate;
 
 use Modules\Invoice\Domain\Enums\StatusEnum;
+use Modules\Invoice\Domain\ValueObject\CustomerEmail;
+use Modules\Invoice\Domain\ValueObject\CustomerName;
 use Ramsey\Uuid\Uuid;
 
 class Invoice
@@ -10,8 +12,8 @@ class Invoice
 
     public function __construct(
         private readonly string $id,
-        private readonly string $customerName,
-        private readonly string $customerEmail,
+        private readonly CustomerName $customerName,
+        private readonly CustomerEmail $customerEmail,
         private readonly StatusEnum $status,
         private array $products,
     ) {
@@ -25,8 +27,8 @@ class Invoice
     {
         return new static(
             id: Uuid::uuid4()->toString(),
-            customerName: $customerName,
-            customerEmail: $customerEmail,
+            customerName: new CustomerName($customerName),
+            customerEmail: new CustomerEmail($customerEmail),
             status: StatusEnum::Draft,
             products: []
         );

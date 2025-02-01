@@ -43,4 +43,26 @@ class InvoiceControllerTest extends TestCase
             ]);
     }
 
+    #[Test]
+    public function user_can_create_invoice(): void
+    {
+        $uri = route('invoices.create');
+
+        $response = $this->post($uri, [
+            'customerName' => 'John Doe',
+            'customerEmail' => 'john@example.com',
+        ]);
+
+        $response->assertOk()
+            ->assertJson([
+                'customerName' => 'John Doe',
+                'customerEmail' => 'john@example.com',
+                'status' => StatusEnum::Draft->value
+            ]);
+
+        $this->assertDatabaseHas('invoices', [
+            'customer_email' => 'john@example.com',
+        ]);
+    }
+
 }

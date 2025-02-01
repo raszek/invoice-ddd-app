@@ -8,4 +8,6 @@ interface InvoiceRepository
 {
 
     public function find(string $id): ?Invoice;
+
+    public function create(Invoice $createdInvoice): void;
 }

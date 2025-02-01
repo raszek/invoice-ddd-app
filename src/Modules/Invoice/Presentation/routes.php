@@ -7,3 +7,4 @@ use Modules\Invoice\Presentation\Http\InvoiceController;
 
 
 Route::get('/invoices/{id}', [InvoiceController::class, 'view'])->name('invoices.view');
+Route::post('/invoices', [InvoiceController::class, 'create'])->name('invoices.create');
