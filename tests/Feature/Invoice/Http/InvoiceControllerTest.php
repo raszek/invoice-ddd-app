@@ -1,0 +1,46 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\Invoice\Http;
+
+use Database\Factories\InvoiceFactory;
+use Illuminate\Foundation\Testing\WithFaker;
+use Modules\Invoice\Domain\Enums\StatusEnum;
+use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
+
+class InvoiceControllerTest extends TestCase
+{
+    use WithFaker;
+
+    protected function setUp(): void
+    {
+        $this->setUpFaker();
+
+        parent::setUp();
+    }
+
+    #[Test]
+    public function user_can_view_invoice(): void
+    {
+        $invoice = InvoiceFactory::new()->create([
+            'customer_name' => 'John Doe',
+            'customer_email' => 'john@example.com',
+            'status' => StatusEnum::Draft->value
+        ]);
+
+        $uri = route('invoices.view', [
+            'id' => $invoice->id,
+        ]);
+
+        $this->getJson($uri)
+            ->assertOk()
+            ->assertJson([
+                'customerName' => 'John Doe',
+                'customerEmail' => 'john@example.com',
+                'status' => StatusEnum::Draft->value
+            ]);
+    }
+
+}
