@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Notifications\Presentation\Http;
 
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Modules\Notifications\Application\Services\NotificationService;
-use Symfony\Component\HttpFoundation\Response;
 
 final readonly class NotificationController
 {
@@ -14,13 +13,13 @@ final readonly class NotificationController
         private NotificationService $notificationService,
     ) {}
 
-    public function hook(string $action, string $reference): JsonResponse
+    public function hook(string $action, string $reference): Response
     {
         match ($action) {
             'delivered' => $this->notificationService->delivered(reference: $reference),
             default => null,
         };
 
-        return new JsonResponse(data: null, status: Response::HTTP_OK);
+        return response()->noContent();
     }
 }

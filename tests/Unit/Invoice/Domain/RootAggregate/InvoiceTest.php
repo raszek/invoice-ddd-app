@@ -3,6 +3,7 @@
 namespace Tests\Unit\Invoice\Domain\RootAggregate;
 
 use Modules\Invoice\Domain\Enums\StatusEnum;
+use Modules\Invoice\Domain\Exception\CannotMarkDeliveredException;
 use Modules\Invoice\Domain\Exception\CannotSendInvoiceException;
 use Modules\Invoice\Domain\RootAggregate\Invoice;
 use Modules\Invoice\Domain\RootAggregate\Product;
@@ -85,6 +86,56 @@ class InvoiceTest extends TestCase
         $invoice->send();
 
         $this->assertEquals('sending', $invoice->getStatus()->value);
+    }
+
+    #[Test]
+    public function invoice_cannot_be_marked_as_delivered_when_status_is_other_than_sending()
+    {
+        $invoice = new Invoice(
+            id: Uuid::create(),
+            customerName: new CustomerName('John Doe'),
+            customerEmail: new CustomerEmail('johndoe@example.com'),
+            status: StatusEnum::Draft,
+            products: [
+                new Product(
+                    name: 'Toothbrush',
+                    quantity: 1,
+                    price: 10
+                )
+            ]
+        );
+
+        $error = null;
+        try {
+            $invoice->markDelivered();
+        } catch (CannotMarkDeliveredException $e) {
+            $error = $e->getMessage();
+        }
+
+        $this->assertNotNull($error);
+        $this->assertEquals('Cannot mark as delivered when invoice status is other than sending', $error);
+    }
+
+    #[Test]
+    public function invoice_can_be_marked_as_delivered()
+    {
+        $invoice = new Invoice(
+            id: Uuid::create(),
+            customerName: new CustomerName('John Doe'),
+            customerEmail: new CustomerEmail('johndoe@example.com'),
+            status: StatusEnum::Sending,
+            products: [
+                new Product(
+                    name: 'Toothbrush',
+                    quantity: 1,
+                    price: 10
+                )
+            ]
+        );
+
+        $invoice->markDelivered();
+
+        $this->assertEquals(StatusEnum::SentToClient, $invoice->getStatus());
     }
 
 }

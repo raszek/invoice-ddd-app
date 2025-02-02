@@ -5,6 +5,7 @@ namespace Modules\Invoice\Domain\RootAggregate;
 use Modules\Invoice\Domain\Enums\StatusEnum;
 use Modules\Invoice\Domain\Event\InvoiceSentDomainEvent;
 use Modules\Invoice\Domain\Event\InvoiceSentProduct;
+use Modules\Invoice\Domain\Exception\CannotMarkDeliveredException;
 use Modules\Invoice\Domain\Exception\CannotSendInvoiceException;
 use Modules\Invoice\Domain\ValueObject\CustomerEmail;
 use Modules\Invoice\Domain\ValueObject\CustomerName;
@@ -122,6 +123,15 @@ class Invoice extends RootAggregate
                 cost: $product->getTotalUnitPrice(),
             )),
         ));
+    }
+
+    public function markDelivered(): void
+    {
+        if ($this->status !== StatusEnum::Sending) {
+            throw new CannotMarkDeliveredException('Cannot mark as delivered when invoice status is other than sending');
+        }
+
+        $this->status = StatusEnum::SentToClient;
     }
 
 }

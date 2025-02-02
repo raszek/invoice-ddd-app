@@ -6,6 +6,7 @@ use Modules\Invoice\Application\Action\CreateInvoice;
 use Modules\Invoice\Application\Action\GetInvoice;
 use Modules\Invoice\Application\Action\SendInvoice;
 use Modules\Invoice\Application\Request\InvoiceRequest;
+use Modules\Invoice\Domain\Exception\CannotSendInvoiceException;
 use Modules\Invoice\Infrastructure\Request\CreateInvoiceRequest;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -30,7 +31,11 @@ class InvoiceController
 
     public function send(SendInvoice $sendInvoice, string $id): Response
     {
-        $sendInvoice->execute($id);
+        try {
+            $sendInvoice->execute($id);
+        } catch (CannotSendInvoiceException $e) {
+            abort(400, $e->getMessage());
+        }
 
         return response()->noContent();
     }

@@ -14,6 +14,9 @@ readonly class SendInvoice
     ) {
     }
 
+    /**
+     * @throws \Modules\Invoice\Domain\Exception\CannotSendInvoiceException
+     */
     public function execute(string $id): void
     {
         $invoice = $this->invoiceRepository->find($id);
