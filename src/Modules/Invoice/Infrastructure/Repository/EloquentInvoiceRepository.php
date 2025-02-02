@@ -8,6 +8,7 @@ use Modules\Invoice\Domain\RootAggregate\Invoice;
 use Modules\Invoice\Domain\RootAggregate\Product;
 use Modules\Invoice\Domain\ValueObject\CustomerEmail;
 use Modules\Invoice\Domain\ValueObject\CustomerName;
+use Modules\Invoice\Domain\ValueObject\ProductName;
 use Modules\Invoice\Infrastructure\Model\InvoiceModel;
 use Modules\Invoice\Infrastructure\Model\ProductModel;
 use Modules\Shared\ValueObject\Uuid;
@@ -28,7 +29,8 @@ class EloquentInvoiceRepository implements InvoiceRepository
 
         $products = $modelInvoice->products()->chunkMap(function (ProductModel $productModel) {
             return new Product(
-                name: $productModel->name,
+                id: new Uuid($productModel->id),
+                name: new ProductName($productModel->name),
                 quantity: $productModel->quantity,
                 price: $productModel->price,
             );

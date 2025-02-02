@@ -3,12 +3,14 @@
 namespace Tests\Unit\Invoice\Domain\RootAggregate;
 
 use Modules\Invoice\Domain\Enums\StatusEnum;
+use Modules\Invoice\Domain\Exception\CannotAddProductException;
 use Modules\Invoice\Domain\Exception\CannotMarkDeliveredException;
 use Modules\Invoice\Domain\Exception\CannotSendInvoiceException;
 use Modules\Invoice\Domain\RootAggregate\Invoice;
 use Modules\Invoice\Domain\RootAggregate\Product;
 use Modules\Invoice\Domain\ValueObject\CustomerEmail;
 use Modules\Invoice\Domain\ValueObject\CustomerName;
+use Modules\Invoice\Domain\ValueObject\ProductName;
 use Modules\Shared\ValueObject\Uuid;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -26,7 +28,8 @@ class InvoiceTest extends TestCase
             status: StatusEnum::Sending,
             products: [
                 new Product(
-                    name: 'Toothbrush',
+                    id: Uuid::create(),
+                    name: new ProductName('Toothbrush'),
                     quantity: 1,
                     price: 10
                 )
@@ -76,7 +79,8 @@ class InvoiceTest extends TestCase
             status: StatusEnum::Draft,
             products: [
                 new Product(
-                    name: 'Toothbrush',
+                    id: Uuid::create(),
+                    name: new ProductName('Toothbrush'),
                     quantity: 1,
                     price: 10
                 )
@@ -91,16 +95,19 @@ class InvoiceTest extends TestCase
     #[Test]
     public function invoice_cannot_be_marked_as_delivered_when_status_is_other_than_sending()
     {
+        $invoiceId = Uuid::create();
+
         $invoice = new Invoice(
-            id: Uuid::create(),
+            id: $invoiceId,
             customerName: new CustomerName('John Doe'),
             customerEmail: new CustomerEmail('johndoe@example.com'),
             status: StatusEnum::Draft,
             products: [
                 new Product(
-                    name: 'Toothbrush',
+                    id: Uuid::create(),
+                    name: new ProductName('Toothbrush'),
                     quantity: 1,
-                    price: 10
+                    price: 10,
                 )
             ]
         );
@@ -126,7 +133,8 @@ class InvoiceTest extends TestCase
             status: StatusEnum::Sending,
             products: [
                 new Product(
-                    name: 'Toothbrush',
+                    id: Uuid::create(),
+                    name: new ProductName('Toothbrush'),
                     quantity: 1,
                     price: 10
                 )
@@ -136,6 +144,68 @@ class InvoiceTest extends TestCase
         $invoice->markDelivered();
 
         $this->assertEquals(StatusEnum::SentToClient, $invoice->getStatus());
+    }
+
+    #[Test]
+    public function invoice_cannot_add_product_if_status_is_other_than_draft()
+    {
+        $invoice = new Invoice(
+            id: Uuid::create(),
+            customerName: new CustomerName('John Doe'),
+            customerEmail: new CustomerEmail('johndoe@example.com'),
+            status: StatusEnum::Sending,
+            products: [
+            ]
+        );
+
+        $error = null;
+        try {
+            $invoice->addNewProduct(new Product(
+                id: Uuid::create(),
+                name: new ProductName('Toothbrush'),
+                quantity: 1,
+                price: 10
+            ));
+        } catch (CannotAddProductException $e) {
+            $error = $e->getMessage();
+        }
+
+        $this->assertNotNull($error);
+        $this->assertEquals('Cannot add product when invoice status is other than draft', $error);
+    }
+
+    #[Test]
+    public function invoice_cannot_add_product_if_there_already_product_with_same_name()
+    {
+        $invoice = new Invoice(
+            id: Uuid::create(),
+            customerName: new CustomerName('John Doe'),
+            customerEmail: new CustomerEmail('johndoe@example.com'),
+            status: StatusEnum::Draft,
+            products: [
+                new Product(
+                    id: Uuid::create(),
+                    name: new ProductName('Toothbrush'),
+                    quantity: 1,
+                    price: 10
+                )
+            ]
+        );
+
+        $error = null;
+        try {
+            $invoice->addNewProduct(new Product(
+                id: Uuid::create(),
+                name: new ProductName('Toothbrush'),
+                quantity: 1,
+                price: 10
+            ));
+        } catch (CannotAddProductException $e) {
+            $error = $e->getMessage();
+        }
+
+        $this->assertNotNull($error);
+        $this->assertEquals('Cannot add product. Product with name Toothbrush already exist in this invoice.', $error);
     }
 
 }

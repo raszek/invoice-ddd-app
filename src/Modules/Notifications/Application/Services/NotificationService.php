@@ -4,20 +4,22 @@ declare(strict_types=1);
 
 namespace Modules\Notifications\Application\Services;
 
-use Illuminate\Contracts\Events\Dispatcher;
 use Modules\Notifications\Api\Events\ResourceDeliveredEvent;
+use Modules\Shared\Domain\Bus\EventBus;
 use Ramsey\Uuid\Uuid;
 
 final readonly class NotificationService
 {
     public function __construct(
-        private Dispatcher $dispatcher,
+        private EventBus $eventBus,
     ) {}
 
     public function delivered(string $reference): void
     {
-        $this->dispatcher->dispatch(new ResourceDeliveredEvent(
-            resourceId: Uuid::fromString($reference),
-        ));
+        $this->eventBus->publish([
+            new ResourceDeliveredEvent(
+                resourceId: Uuid::fromString($reference),
+            )
+        ]);
     }
 }

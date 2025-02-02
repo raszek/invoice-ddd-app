@@ -5,6 +5,7 @@ namespace Modules\Invoice\Domain\RootAggregate;
 use Modules\Invoice\Domain\Enums\StatusEnum;
 use Modules\Invoice\Domain\Event\InvoiceSentDomainEvent;
 use Modules\Invoice\Domain\Event\InvoiceSentProduct;
+use Modules\Invoice\Domain\Exception\CannotAddProductException;
 use Modules\Invoice\Domain\Exception\CannotMarkDeliveredException;
 use Modules\Invoice\Domain\Exception\CannotSendInvoiceException;
 use Modules\Invoice\Domain\ValueObject\CustomerEmail;
@@ -41,24 +42,6 @@ class Invoice extends RootAggregate
             status: StatusEnum::Draft,
             products: []
         );
-    }
-
-    public function setProducts(array $products): void
-    {
-        $this->products = [];
-        $this->addProducts($products);
-    }
-
-    public function addProducts(array $products): void
-    {
-        foreach ($products as $product) {
-            $this->addProduct($product);
-        }
-    }
-
-    public function addProduct(Product $product): void
-    {
-        $this->products[] = $product;
     }
 
     public function getId(): string
@@ -99,6 +82,26 @@ class Invoice extends RootAggregate
         return $totalPrice;
     }
 
+    public function addNewProduct(Product $newProduct): void
+    {
+        if ($this->status !== StatusEnum::Draft) {
+            throw new CannotAddProductException(
+                'Cannot add product when invoice status is other than draft'
+            );
+        }
+
+        foreach ($this->getProducts() as $product) {
+            if ($product->getName() === $newProduct->getName()) {
+                throw new CannotAddProductException(
+                    sprintf(
+                        'Cannot add product. Product with name %s already exist in this invoice.',
+                        $newProduct->getName()
+                    )
+                );
+            }
+        }
+    }
+
     public function send(): void
     {
         if ($this->status !== StatusEnum::Draft) {
@@ -132,6 +135,24 @@ class Invoice extends RootAggregate
         }
 
         $this->status = StatusEnum::SentToClient;
+    }
+
+    private function setProducts(array $products): void
+    {
+        $this->products = [];
+        $this->addProducts($products);
+    }
+
+    private function addProducts(array $products): void
+    {
+        foreach ($products as $product) {
+            $this->addProduct($product);
+        }
+    }
+
+    private function addProduct(Product $product): void
+    {
+        $this->products[] = $product;
     }
 
 }

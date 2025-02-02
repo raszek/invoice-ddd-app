@@ -93,4 +93,27 @@ class InvoiceControllerTest extends TestCase
         ]);
     }
 
+    #[Test]
+    public function user_can_add_product_to_invoice_when_status_is_draft(): void
+    {
+        $invoice = InvoiceFactory::new()->create([
+            'status' => StatusEnum::Draft->value
+        ]);
+
+        $uri = route('invoices.add-product', [
+            'id' => $invoice->id,
+        ]);
+
+        $this->post($uri, [
+            'name' => 'Toothbrush',
+            'quantity' => 1,
+            'price' => 10,
+        ])->assertStatus(201);
+
+        $this->assertDatabaseHas('invoice_product_lines', [
+            'invoice_id' => $invoice->id,
+            'name' => 'Toothbrush',
+        ]);
+    }
+
 }

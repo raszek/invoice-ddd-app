@@ -3,7 +3,7 @@
 namespace Modules\Invoice\Application\Action;
 
 use Modules\Invoice\Application\Response\InvoiceResponse;
-use Modules\Invoice\Domain\Exception\InvoiceNotExist;
+use Modules\Invoice\Domain\Exception\InvoiceNotExistException;
 use Modules\Invoice\Domain\Repository\InvoiceRepository;
 
 readonly class GetInvoice
@@ -19,7 +19,7 @@ readonly class GetInvoice
         $invoice = $this->invoiceRepository->find($invoiceId);
 
         if (!$invoice) {
-            throw new InvoiceNotExist('Invoice not found');
+            throw new InvoiceNotExistException('Invoice not found');
         }
 
         return InvoiceResponse::fromInvoice($invoice);

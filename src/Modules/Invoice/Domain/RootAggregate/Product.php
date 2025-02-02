@@ -2,18 +2,26 @@
 
 namespace Modules\Invoice\Domain\RootAggregate;
 
+use Modules\Invoice\Domain\ValueObject\ProductName;
+use Modules\Shared\ValueObject\Uuid;
 use Webmozart\Assert\Assert;
 
 readonly class Product
 {
     public function __construct(
-        private string $name,
+        private Uuid $id,
+        private ProductName $name,
         private int $quantity,
         private int $price,
     ) {
         Assert::minLength($this->name, 1);
         Assert::positiveInteger($this->quantity);
         Assert::positiveInteger($this->price);
+    }
+
+    public function getId(): Uuid
+    {
+        return $this->id;
     }
 
     public function getName(): string
